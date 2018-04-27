@@ -20,21 +20,20 @@ def datosSenal(amplitud,frecuencia,fase):
     return np.sin(((periodo)*frecuencia)+fase)*amplitud
 
 #funion para generar los datos a graficar de la funcion muestreada
-def muestreo(amplitud,frecuencia,fase,muestras):
-    t=1/muestras
-    n=arange(0,2*pi)
-
-    return arange(n*t,np.sin(((periodo)*frecuencia*t)+fase)*amplitud)
+def muestreo(amplitud,frecuencia,fase,muestras,n):
+    return np.sin(((n)*frecuencia)+fase)*amplitud
+    #return np.sin(((periodo)*frecuencia)+fase)*amplitud
 
 
 
 #funcion para graficar
 def grafica (amplitud,frecuencia,fase,muestras):
     f=Figure()
-    ax=f.add_subplot(211)
+    plt.subplot(211)
     plt.plot(periodo, datosSenal(amplitud,frecuencia,fase))
-    ax=f.add_subplot(212)
-    plt.plot(periodo, muestreo(amplitud,frecuencia,fase,muestras))
+    plt.subplot(212)
+    n=np.linspace(0,2*pi,muestras)
+    plt.stem(n, muestreo(amplitud,frecuencia,fase,muestras,n))
     show()
 
 
