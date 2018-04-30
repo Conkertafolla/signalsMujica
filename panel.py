@@ -18,6 +18,8 @@ from matplotlib import style
 import numpy as np
 from numpy import arange, sin, pi
 
+import math as mt
+
 
 #Variables de la señal
 amplitud=1
@@ -39,22 +41,47 @@ ax1=f.add_subplot(2,1,2)
 
 
 def datosSenal(amplitud,frecuencia,fase):
-    return np.sin(((periodo)*frecuencia)+fase)*amplitud
+    return np.sin((((periodo)*frecuencia)+fase)*amplitud)
 
 def muestreo (amplitud,frecuencia,fase,muestras,n):
     return np.sin(((n)*frecuencia)+fase)*amplitud
 
+def PCM(amplitud,valor_muestra,n):
+    rango=amplitud*2
+    unidad=rango/256
+    codificacion=[]
+    for dato in range(0,len(n)):
+        aux=np.binary_repr((mt.ceil((valor_muestra[dato]+amplitud)/unidad)),width=8)
+        if(aux=="100000000"):
+            aux="11111111"
+        codificacion.append(aux)
+    return codificacion
+
+def DPCM(amplitud,valor_muestra,n):
+    codificacion=[]
+    for dato in range(0,len(n)-1):
+        aux=(valor_muestra[dato+1]-valor_muestra[dato])
+        codificacion.append(aux)
+    codificacion.append(0)
+    return codificacion
+
+
 def datosTabla(amplitud,frecuencia,fase,muestras,n):
+    limpiarTabla()
+    identificador_tabla=[]
     rango_muestras=n
     numero_renglones=len(n)
     datos_muestra=muestreo(amplitud,frecuencia,fase,muestras,n)
+    codigos=PCM(amplitud,datos_muestra,n)
+    dpcm=DPCM(amplitud,datos_muestra,n)
     for renglon in reversed(range(0,len(rango_muestras))):
-        identificador_tabla.append(tree.insert("",0,text="{0:.2f}".format(rango_muestras[renglon]),values=("{0:.2f}".format(datos_muestra[renglon]))))
+        identificador_tabla.append(tree.insert("",0,text="{0:.2f}".format(rango_muestras[renglon]),values=("{0:.3f}".format(datos_muestra[renglon]),codigos[renglon],"{0:.3f}".format(dpcm[renglon]))))
 
 def limpiarTabla():
     if(len(identificador_tabla)>0):
         for i in range(0,len(identificador_tabla)):
             tree.delete(identificador_tabla[i])
+
     else:
         pass
 
@@ -63,7 +90,6 @@ def limpiarTabla():
 def animacion(amplitud,frecuencia,fase,muestras):
     ax.clear()
     ax1.clear()
-    limpiarTabla()
     ax.set_title("Señal original")
     ax.plot(periodo, datosSenal(amplitud,frecuencia,fase))
     n=np.linspace(0,2*pi,muestras)
@@ -123,10 +149,15 @@ graficabtn= Button(raiz, height=1,width=10,text="Graficar", command=datosGrafica
 graficabtn.place(x=500, y=15)
 
 #Creando tablas
-tree=ttk.Treeview(raiz,columns=("muestras"))
+tree=ttk.Treeview(raiz,columns=("muestras","Codificacion","DPCM"))
 tree.column("muestras", width=100)
-tree.heading("#0",text=" n ")
+tree.column("Codificacion", width=100)
+tree.column("#0",width=50)
+tree.column("DPCM",width=100)
+tree.heading("#0",text="n")
 tree.heading("muestras",text=" Valor de muestra")
+tree.heading("Codificacion",text="Codificación")
+tree.heading("DPCM",text="DPCM")
 tree.place(x=700, y=20)
 
 
