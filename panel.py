@@ -38,8 +38,6 @@ ax=f.add_subplot(2,1,1)
 ax1=f.add_subplot(2,1,2)
 
 
-
-
 def datosSenal(amplitud,frecuencia,fase):
     return np.sin((((periodo)*frecuencia)+fase)*amplitud)
 
@@ -99,15 +97,93 @@ def animacion(amplitud,frecuencia,fase,muestras):
     datosTabla(amplitud,frecuencia,fase,muestras,n)
     f.canvas.show()
 
-
-
-
 def datosGrafica():
     amplitud=int(textAmplitud.get('1.0','end-1c'))
     frecuencia=int(textFrecuencia.get('1.0','end-1c'))
     fase=int(textFase.get('1.0','end-1c'))
     muestras=int(textmuestras.get('1.0','end-1c'))
     animacion(amplitud,frecuencia,fase,muestras)
+
+def datosSerie():
+    armonics=int(textArmonicos.get('1.0','end-1c'))
+    fr=int(textFrecuencia1.get('1.0','end-1c'))
+    periodo=int(textPeriodo.get('1.0','end-1c'))
+    c=int(textc.get('1.0','end-1c'))
+    c1=int(textc1.get('1.0','end-1c'))
+    y = []
+    f = []
+
+    for i in x_:
+        y.append(squareWave(i))
+        f.append(fourierSeries(armonics,i))
+
+    plt.plot(x_,y,color="blue")
+    plt.plot(x_,f,color="red")
+    plt.title("Aproximación de la serie de Fourier con numero de armonicos: "+str(armonics))
+    plt.legend()
+    plt.show()
+
+c=-20
+c1=20
+fr=20000
+
+# Setup
+x_ = np.linspace(c,c1,fr)
+
+T = 20
+armonics = 30
+
+def squareWave(x):
+    global T
+    lowerBoundLeft = (-T/2)
+    lowerBoundRight = 0
+    upperBoundLeft = 0
+    upperBoundRight = (T/2)
+    one = 1
+    negativeOne = -1
+
+    while True:
+        if (x >= lowerBoundLeft) and (x <= lowerBoundRight):
+            return negativeOne
+        elif (x >= upperBoundLeft) and (x <= upperBoundRight):
+            return one
+        else:
+            lowerBoundLeft -= T/2
+            lowerBoundRight -= T/2
+            upperBoundLeft += T/2
+            upperBoundRight += T/2
+            if one == 1:
+                one = -1
+                negativeOne = 1
+            else:
+                one = 1
+                negativeOne = -1
+
+# Bn coefficients
+def bn(n):
+    n = int(n)
+    if (n%2 != 0):
+        return 4/(np.pi*n)
+    else:
+        return 0
+
+# Wn
+def wn(n):
+    global T
+    wn = (2*np.pi*n)/T
+    return wn
+
+# Fourier Series function
+def fourierSeries(n_max,x):
+    a0 = 0
+    partialSums = a0
+    for n in range(1,n_max):
+        try:
+            partialSums = partialSums + bn(n)*np.sin(wn(n)*x)
+        except:
+            print("pass")
+            pass
+    return partialSums
 
 
 
@@ -148,6 +224,43 @@ textmuestras.place(x=410, y=20)
 graficabtn= Button(raiz, height=1,width=10,text="Graficar", command=datosGrafica)
 graficabtn.place(x=500, y=15)
 
+#Armonicos
+labelArmonicos= Label(raiz, text="Armonicos")
+labelArmonicos.place(x=30 ,y=50)
+textArmonicos=Text(raiz,height=1,width=3)
+textArmonicos.place(x=95 ,y=50)
+
+#Periodo
+labelPeriodo= Label(raiz, text="Periodo")
+labelPeriodo.place(x=130 ,y=50)
+textPeriodo=Text(raiz,height=1,width=3)
+textPeriodo.place(x=180 ,y=50)
+
+#Frecuencia
+labelFrecuencia1= Label(raiz, text="Frecuencia")
+labelFrecuencia1.place(x=210 ,y=50)
+textFrecuencia1=Text(raiz,height=1,width=3)
+textFrecuencia1.place(x=280 ,y=50)
+
+#c
+labelc= Label(raiz, text="c")
+labelc.place(x=310 ,y=50)
+textc=Text(raiz,height=1,width=3)
+textc.place(x=330 ,y=50)
+
+#c1
+labelc1= Label(raiz, text="c1")
+labelc1.place(x=360 ,y=50)
+textc1=Text(raiz,height=1,width=3)
+textc1.place(x=390 ,y=50)
+
+
+
+#Grafica boton
+graficabtn= Button(raiz, height=1,width=10,text="Graficar Series", command=datosSerie)
+graficabtn.place(x=500, y=55)
+
+
 #Creando tablas
 tree=ttk.Treeview(raiz,columns=("muestras","Codificacion","DPCM"))
 tree.column("muestras", width=100)
@@ -158,15 +271,14 @@ tree.heading("#0",text="n")
 tree.heading("muestras",text=" Valor de muestra")
 tree.heading("Codificacion",text="Codificación")
 tree.heading("DPCM",text="DPCM")
-tree.place(x=700, y=20)
+tree.place(x=700, y=40)
 
 
 
 canvas=FigureCanvasTkAgg(f,master=raiz)
-canvas.get_tk_widget().place(x=30,y=60)
+canvas.get_tk_widget().place(x=30,y=80)
 canvas.show()
 ani=animation.FuncAnimation(f, animacion(amplitud,frecuencia,fase,muestras), interval=1000,)
 f.tight_layout()
-
 
 raiz.mainloop()
